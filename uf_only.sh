@@ -236,9 +236,11 @@ sed -i "s/test/$HOST_NAME/" inputs.conf &>> $logfile
 sed -i "s,/opt/cowrie/log/,${KIPPO_LOG_LOCATION}," inputs.conf &>> $logfile
 sed -i "s/test/$SPLUNK_INDEXER/" outputs.conf &>> $logfile
 
-echo "[user_info]\nUSERNAME = $SPLUNK_USER\nPASSWORD = $SPLUNK_PASS" > /opt/splunkforwarder/etc/system/local/user-seed.conf
-chown -R splunk:splunk /opt/splunkforwarder &>> $logfile
-/opt/splunkforwarder/bin/splunk restart &>> $logfile
+echo "[user_info]" > /opt/splunkforwarder/etc/system/local/user-seed.conf
+echo "USERNAME = $SPLUNK_USER" >> /opt/splunkforwarder/etc/system/local/user-seed.conf
+echo "PASSWORD = $SPLUNK_PASS" >> /opt/splunkforwarder/etc/system/local/user-seed.conf
+sudo chown -R splunk:splunk /opt/splunkforwarder &>> $logfile
+sudo /opt/splunkforwarder/bin/splunk restart &>> $logfile
 error_check 'Tango_input installation'
 
 print_notification "If the location of your cowrie log files changes or the hostname/ip of the indexer changes, you will need to modify /opt/splunkfowarder/etc/apps/tango_input/default/inputs.conf and outputs.conf respectively."
