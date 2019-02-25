@@ -24,6 +24,12 @@ read -e -p "[?] Enter Sensor name: (example: hp-US-Las_Vegas-01) " HOST_NAME
 #Kippo Logs
 read -e -p "[?] Enter the full path to where your Cowrie logs are stored: (example:/opt/cowrie/log/) " KIPPO_LOG_LOCATION
 
+#Splunk Username
+read -e -p "[?] Enter Splunk username:(example: admin) " SPLUNK_USER
+
+#Splunk Password
+read -e -p "[?] Enter Splunk password: " SPLUNK_PASS
+
 ########################################
 
 
@@ -124,14 +130,14 @@ fi
 arch=`uname -m`
 
 if [[ $arch == "x86_64" ]]; then
-     INSTALL_FILE="splunkforwarder-6.3.0-aa7d4b1ccb80-Linux-x86_64.tgz"
+     INSTALL_FILE="splunkforwarder-7.2.0-8c86330ac18-Linux-x86_64.tgz"
      print_notification "System is $arch. Downloading: $INSTALL_FILE to /opt.."
-     wget -O /opt/splunkforwarder-6.3.0-aa7d4b1ccb80-Linux-x86_64.tgz 'http://www.splunk.com/bin/splunk/DownloadActivityServlet?architecture=x86_64&platform=linux&version=6.3.0&product=universalforwarder&filename=splunkforwarder-6.3.0-aa7d4b1ccb80-Linux-x86_64.tgz&wget=true' &>> $logfile	
+     wget -O /opt/splunkforwarder-7.2.0-8c86330ac18-Linux-x86_64.tgz 'https://www.splunk.com/bin/splunk/DownloadActivityServlet?architecture=x86_64&platform=linux&version=7.2.0&product=universalforwarder&filename=splunkforwarder-7.2.0-8c86330ac18-Linux-x86_64.tgz&wget=true' &>> $logfile	
     error_check 'Splunk Forwarder Download'
 elif [[ $arch == "i686" ]]; then
-    INSTALL_FILE="splunkforwarder-6.3.0-aa7d4b1ccb80-Linux-i686.tgz"
+    INSTALL_FILE="splunkforwarder-7.1.2-a0c72a66db66-Linux-i686.tgz"
     print_notification "System is $arch. Downloading: $INSTALL_FILE to /opt.."
-    wget -O /opt/splunkforwarder-6.3.0-aa7d4b1ccb80-Linux-i686.tgz 'http://www.splunk.com/bin/splunk/DownloadActivityServlet?architecture=x86&platform=linux&version=6.30&product=universalforwarder&filename=splunkforwarder-6.3.0-aa7d4b1ccb80-Linux-i686.tgz&wget=true' &>> $logfile	
+    wget -O /opt/splunkforwarder-7.1.2-a0c72a66db66-Linux-i686.tgz 'https://www.splunk.com/page/download_track?file=7.1.2/linux/splunkforwarder-7.1.2-a0c72a66db66-Linux-i686.tgz&ac=&wget=true&name=wget&platform=Linux&architecture=x86&version=7.1.2&product=universalforwarder&typed=release' &>> $logfile	
     error_check 'Splunk Forwarder Download'
 else
 	print_error "System arch is not x86_64 or i686. Tango Honeypot is not yet supported on other CPU architectures."
@@ -212,7 +218,7 @@ error_check 'Universal Forwarder Install'
 
 ########################################
 
-#Check to see if the user tried to execute uf_only outside of the Tango directory. Yell at them if they did. Grab tango_input from the Tango directory (if it's there), configure inputs.conf, start up the forwarder. We done here.
+# Check to see if the user tried to execute uf_only outside of the Tango directory. Yell at them if they did. Grab tango_input from the Tango directory, configure inputs.conf, start up the forwarder. We done here.
 
 print_notification "Installing tango_input.."
 
@@ -226,11 +232,12 @@ fi
 print_notification "Configuring /opt/splunkforwarder/etc/apps/tango_input/default/inputs.conf and outputs.conf.."
 
 cd /opt/splunkforwarder/etc/apps/tango_input/default 
-sudo sed -i "s/test/$HOST_NAME/" inputs.conf &>> $logfile
-sudo sed -i "s,/opt/cowrie/log/,${KIPPO_LOG_LOCATION}," inputs.conf &>> $logfile
-sudo sed -i "s/test/$SPLUNK_INDEXER/" outputs.conf &>> $logfile
+sed -i "s/test/$HOST_NAME/" inputs.conf &>> $logfile
+sed -i "s,/opt/cowrie/log/,${KIPPO_LOG_LOCATION}," inputs.conf &>> $logfile
+sed -i "s/test/$SPLUNK_INDEXER/" outputs.conf &>> $logfile
 
-sudo chown -R splunk:splunk /opt/splunkforwarder &>> $logfile
+echo "[user_info]\nUSERNAME = $SPLUNK_USER\nPASSWORD = $SPLUNK_PASS" > /opt/splunkforwarder/etc/system/local/user-seed.conf
+chown -R splunk:splunk /opt/splunkforwarder &>> $logfile
 /opt/splunkforwarder/bin/splunk restart &>> $logfile
 error_check 'Tango_input installation'
 
