@@ -24,12 +24,6 @@ read -e -p "[?] Enter Sensor name: (example: hp-US-Las_Vegas-01) " HOST_NAME
 #Kippo Logs
 read -e -p "[?] Enter the full path to where your Cowrie logs are stored: (example:/opt/cowrie/log/) " KIPPO_LOG_LOCATION
 
-#Splunk Username
-read -e -p "[?] Enter Splunk username:(example: admin) " SPLUNK_USER
-
-#Splunk Password
-read -e -p "[?] Enter Splunk password: " SPLUNK_PASS
-
 ########################################
 
 
@@ -231,17 +225,13 @@ fi
 
 print_notification "Configuring /opt/splunkforwarder/etc/apps/tango_input/default/inputs.conf and outputs.conf.."
 
-sudo chown -R splunk:splunk /opt/splunkforwarder &>> $logfile
+chown -R splunk:splunk /opt/splunkforwarder &>> $logfile
 cd /opt/splunkforwarder/etc/apps/tango_input/default 
 su - u splunk  sed -i "s/test/$HOST_NAME/" inputs.conf &>> $logfile
 su - u splunk  sed -i "s,/opt/cowrie/log/,${KIPPO_LOG_LOCATION}," inputs.conf &>> $logfile
 su - u splunk  sed -i "s/test/$SPLUNK_INDEXER/" outputs.conf &>> $logfile
 
-echo "[user_info]" > /opt/splunkforwarder/etc/system/local/user-seed.conf
-echo "USERNAME = $SPLUNK_USER" >> /opt/splunkforwarder/etc/system/local/user-seed.conf
-echo "PASSWORD = $SPLUNK_PASS" >> /opt/splunkforwarder/etc/system/local/user-seed.conf
-
-sudo /opt/splunkforwarder/bin/splunk restart &>> $logfile
+/opt/splunkforwarder/bin/splunk restart &>> $logfile
 error_check 'Tango_input installation'
 
 print_notification "If the location of your cowrie log files changes or the hostname/ip of the indexer changes, you will need to modify /opt/splunkfowarder/etc/apps/tango_input/default/inputs.conf and outputs.conf respectively."
