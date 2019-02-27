@@ -227,9 +227,9 @@ print_notification "Configuring /opt/splunkforwarder/etc/apps/tango_input/defaul
 
 chown -R splunk:splunk /opt/splunkforwarder &>> $logfile
 cd /opt/splunkforwarder/etc/apps/tango_input/default 
-su - u splunk  sed -i "s/test/$HOST_NAME/" inputs.conf &>> $logfile
-su - u splunk  sed -i "s,/opt/cowrie/log/,${KIPPO_LOG_LOCATION}," inputs.conf &>> $logfile
-su - u splunk  sed -i "s/test/$SPLUNK_INDEXER/" outputs.conf &>> $logfile
+sudo -u splunk  sed -i "s/test/$HOST_NAME/" inputs.conf &>> $logfile
+sudo -u splunk  sed -i "s,/opt/cowrie/log/,${KIPPO_LOG_LOCATION}," inputs.conf &>> $logfile
+sudo -u splunk  sed -i "s/test/$SPLUNK_INDEXER/" outputs.conf &>> $logfile
 
 /opt/splunkforwarder/bin/splunk restart &>> $logfile
 error_check 'Tango_input installation'
